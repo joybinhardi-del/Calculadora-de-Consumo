@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Consumo</title>
+    <!-- Incluindo Tailwind CSS para estilização rápida e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Definindo a fonte Inter como padrão para uma leitura agradável */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilos adicionais para o foco e transições */
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8 flex items-center justify-center min-h-screen">
+
+    <!-- Container principal da calculadora -->
+    <div class="w-full max-w-lg bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-200 transition-all duration-300 transform hover:scale-105">
+        
+        <!-- Título e subtítulo -->
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800 text-center mb-2">Calculadora de Consumo</h1>
+        <p class="text-gray-500 text-center mb-8">Descubra quanto seus aparelhos consomem por mês.</p>
+
+        <!-- Seção de entrada de dados -->
+        <div class="space-y-6">
+            <!-- Campo para seleção do aparelho -->
+            <div>
+                <label for="aparelho" class="block text-sm font-medium text-gray-700 mb-1">Escolha o Aparelho</label>
+                <select id="aparelho" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                    <option value="" disabled selected>-- Selecione um aparelho --</option>
+                    <option value="chuveiro">Chuveiro Elétrico (5500W)</option>
+                    <option value="geladeira">Geladeira (150W)</option>
+                    <option value="ar-condicionado">Ar-Condicionado (1200W)</option>
+                    <option value="lampada_led">Lâmpada LED (10W)</option>
+                    <option value="televisao">Televisão (100W)</option>
+                    <option value="micro-ondas">Micro-ondas (1500W)</option>
+                </select>
+            </div>
+
+            <!-- Campo para uso diário -->
+            <div>
+                <label for="uso_diario" class="block text-sm font-medium text-gray-700 mb-1">Tempo de Uso Diário (em horas)</label>
+                <input type="number" id="uso_diario" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Ex: 1.5 para uma hora e meia">
+            </div>
+
+            <!-- Campo para a tarifa local de energia -->
+            <div>
+                <label for="tarifa" class="block text-sm font-medium text-gray-700 mb-1">Valor da Tarifa de Energia (R$ por kWh)</label>
+                <input type="number" id="tarifa" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" value="0.75" step="0.01">
+            </div>
+        </div>
+
+        <!-- Botão de cálculo -->
+        <button onclick="calcularConsumo()" class="w-full mt-8 py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-xl shadow-lg transition-all transform hover:scale-105 focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50">
+            Calcular Consumo
+        </button>
+
+        <!-- Área de resultado -->
+        <div id="resultado" class="mt-8 p-6 bg-blue-50 rounded-lg text-center font-semibold text-gray-800 transition-all duration-300 opacity-0 transform scale-95">
+            <!-- O resultado do cálculo aparecerá aqui -->
+        </div>
+
+    </div>
+
+    <script>
+        // Objeto que armazena a potência em Watts de cada aparelho
+        // Essa é a informação-chave para a calculadora
+        const potencias = {
+            "chuveiro": 5500,
+            "geladeira": 150,
+            "ar-condicionado": 1200,
+            "lampada_led": 10,
+            "televisao": 100,
+            "micro-ondas": 1500
+        };
+
+        /**
+         * @description Função principal para calcular o consumo e o custo mensal.
+         * A função é acionada pelo botão "Calcular Consumo".
+         */
+        function calcularConsumo() {
+            // Pega os elementos HTML para obter os valores de entrada
+            const aparelhoSelect = document.getElementById('aparelho');
+            const usoDiarioInput = document.getElementById('uso_diario');
+            const tarifaInput = document.getElementById('tarifa');
+            const resultadoDiv = document.getElementById('resultado');
+
+            // Limpa a área de resultado para um novo cálculo
+            resultadoDiv.innerHTML = '';
+            // Reseta a visibilidade e a escala para animar a entrada do novo resultado
+            resultadoDiv.classList.add('opacity-0', 'scale-95');
+
+            // Pega os valores e converte para números
+            const aparelho = aparelhoSelect.value;
+            const usoDiario = parseFloat(usoDiarioInput.value);
+            const tarifa = parseFloat(tarifaInput.value);
+
+            // Validação dos inputs
+            if (!aparelho || isNaN(usoDiario) || usoDiario <= 0 || isNaN(tarifa) || tarifa <= 0) {
+                // Exibe uma mensagem de erro se os campos estiverem incompletos ou inválidos
+                resultadoDiv.innerHTML = '<p class="text-red-500 font-bold">Por favor, preencha todos os campos com valores válidos.</p>';
+                resultadoDiv.classList.remove('opacity-0', 'scale-95');
+                return;
+            }
+
+            // Pega a potência do aparelho selecionado no objeto de potências
+            const potencia = potencias[aparelho];
+
+            // Calcula o consumo em kWh
+            // Fórmula: (Potência em Watts * Horas de uso) / 1000
+            const consumoDiarioKwh = (potencia * usoDiario) / 1000;
+            const consumoMensalKwh = consumoDiarioKwh * 30; // Considerando um mês de 30 dias
+
+            // Calcula o custo mensal em reais
+            const custoMensal = consumoMensalKwh * tarifa;
+
+            // Formata o custo para duas casas decimais
+            const custoMensalFormatado = custoMensal.toFixed(2);
+            
+            // Pega o texto do aparelho para exibir no resultado
+            const aparelhoTexto = aparelhoSelect.options[aparelhoSelect.selectedIndex].text;
+
+            // Exibe o resultado na tela
+            resultadoDiv.innerHTML = `
+                <p class="text-lg">O consumo mensal de **${aparelhoTexto}** é de aproximadamente **${consumoMensalKwh.toFixed(2)} kWh**.</p>
+                <p class="text-2xl mt-2 font-extrabold text-blue-700">Isso custa cerca de **R$ ${custoMensalFormatado}** por mês.</p>
+            `;
+
+            // Animação de entrada do resultado
+            setTimeout(() => {
+                resultadoDiv.classList.remove('opacity-0', 'scale-95');
+            }, 100);
+        }
+    </script>
+</body>
+</html>
